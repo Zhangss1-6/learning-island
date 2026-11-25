@@ -22,12 +22,12 @@ window.UNIT_META = {
   },
   en: {
     "6上": [
-      "Unit 1 How can I get there?", "Unit 2 Ways to go to school", "Unit 3 My weekend plan",
-      "Unit 4 I have a pen pal", "Unit 5 What does he do?", "Unit 6 How do you feel?"
+      "Unit 1 Travelling（旅行）", "Unit 2 My Feelings（情绪）", "Unit 3 Planting and Growing（种植）",
+      "Unit 4 Seasons（四季）", "Unit 5 Celebration days（节日）", "Unit 6 Heroes（英雄）"
     ],
     "6下": [
-      "Unit 1 How tall are you?", "Unit 2 Last weekend", "Unit 3 Where did you go?",
-      "Unit 4 Then and now"
+      "Unit 1 I went to Sanya for my holidays", "Unit 2 There is a park near my home",
+      "Unit 3 We are going to travel", "Unit 4 General Revision 1", "Unit 5 General Revision 2", "Unit 6 General Revision 3"
     ]
   }
 };
