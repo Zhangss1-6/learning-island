@@ -65,7 +65,38 @@ window.DRESSUP = [
   { id: "prop-5", cat: "prop", name: "小闹钟", price: 600, rarity: 3, emoji: "⏰", desc: "计时练习不磨蹭" },
   { id: "prop-6", cat: "prop", name: "奖杯", price: 1000, rarity: 4, emoji: "🏆", desc: "限定：首次满分", ach: "ach-fullscore" },
   { id: "prop-7", cat: "prop", name: "火箭模型", price: 1600, rarity: 5, emoji: "🚀", desc: "限定：连对 10 题", ach: "ach-streak10" },
-  { id: "prop-8", cat: "prop", name: "毕业相册", price: 1600, rarity: 5, emoji: "📔", desc: "限定：连续打卡 30 天", ach: "ach-streak30" }
+  { id: "prop-8", cat: "prop", name: "毕业相册", price: 1600, rarity: 5, emoji: "📔", desc: "限定：连续打卡 30 天", ach: "ach-streak30" },
+
+  // ===== 宠物 (9)：明码标价领养，喂养升级（越贵越稀有） =====
+  { id: "pet-1", cat: "pet", name: "咕咕小黄鸡", price: 100, rarity: 1, emoji: "🐥", desc: "叽叽喳喳陪你刷题" },
+  { id: "pet-2", cat: "pet", name: "小奶猫", price: 300, rarity: 2, emoji: "🐱", desc: "练习时会趴在桌角" },
+  { id: "pet-3", cat: "pet", name: "柴柴", price: 300, rarity: 2, emoji: "🐶", desc: "汪！闯关必胜！" },
+  { id: "pet-4", cat: "pet", name: "摇摇摆摆企鹅", price: 600, rarity: 3, emoji: "🐧", desc: "走路自带节奏感" },
+  { id: "pet-5", cat: "pet", name: "滚滚小熊猫", price: 1000, rarity: 4, emoji: "🐼", desc: "国宝级学习搭子" },
+  { id: "pet-6", cat: "pet", name: "机灵小狐狸", price: 1000, rarity: 4, emoji: "🦊", desc: "难题难不倒它" },
+  { id: "pet-7", cat: "pet", name: "云朵小飞龙", price: 1600, rarity: 5, emoji: "🐲", desc: "传说级坐骑" },
+  { id: "pet-8", cat: "pet", name: "彩虹独角兽", price: 1600, rarity: 5, emoji: "🦄", desc: "传说级幸运星" },
+  { id: "pet-9", cat: "pet", name: "小麒麟", price: 1600, rarity: 5, emoji: "🦌", desc: "限定：达成 20 个成就", ach: "ach-achiever20" },
+
+  // ===== 宠物装扮 (6)：需宠物等级 ≥2 才可穿戴 =====
+  { id: "pacc-1", cat: "pacc", name: "蝴蝶结", price: 100, rarity: 1, emoji: "🎀", desc: "宠物必备卖萌神器" },
+  { id: "pacc-2", cat: "pacc", name: "小黄帽", price: 300, rarity: 2, emoji: "👒", desc: "遮阳又好看" },
+  { id: "pacc-3", cat: "pacc", name: "条纹围巾", price: 300, rarity: 2, emoji: "🧣", desc: "冬天暖暖的" },
+  { id: "pacc-4", cat: "pacc", name: "酷酷墨镜", price: 600, rarity: 3, emoji: "🕶️", desc: "宠物界的时尚顶流" },
+  { id: "pacc-5", cat: "pacc", name: "小皇冠", price: 1000, rarity: 4, emoji: "👑", desc: "宠物中的王者" },
+  { id: "pacc-6", cat: "pacc", name: "星光斗篷", price: 1600, rarity: 5, emoji: "✨", desc: "限定：错题清零", ach: "ach-wrongclear" }
 ];
 window.DRESSUP_BY_ID = {};
 window.DRESSUP.forEach(function (d) { window.DRESSUP_BY_ID[d.id] = d; });
+
+// 档位名称（对应价格 100/300/600/1000/1600）
+window.RARITY_NAMES = { 0: "默认", 1: "普通 · 100分档", 2: "进阶 · 300分档", 3: "稀有 · 600分档", 4: "史诗 · 1000分档", 5: "传说 · 1600分档" };
+
+// 宠物成长规则
+window.PET_RULES = {
+  FEED_COST: 20,        // 每次喂食消耗积分
+  XP_PER_FEED: 10,      // 每次喂食获得经验
+  LEVEL_STEP: 40,       // 升级所需经验（累计）
+  MAX_LEVEL: 10,        // 等级上限
+  FEEDS_PER_DAY: 3      // 每只宠物每天最多喂 3 次
+};
