@@ -28,6 +28,7 @@
       purchases: 0,
       achievements: [],
       tasks: { date: null, list: [] },
+      pets: { owned: [], equipped: null, st: {} },   // 宠物：已领养 / 出战中 / 各宠物成长状态
       settings: { sound: false, fontSize: "std", limitMin: 30, quietStart: 21, quietEnd: 22, pin: null },
       minutesToday: 0, minutesDate: null, practiceStart: null
     };
@@ -67,7 +68,12 @@
     slot: 0,
     S: null,
 
-    start(slot, state) { this.slot = slot; this.S = state || defaultState(); this.login(); Store.save(this.S, slot); },
+    start(slot, state) {
+      this.slot = slot; this.S = state || defaultState();
+      // 旧存档迁移：补宠物字段
+      if (!this.S.pets) this.S.pets = { owned: [], equipped: null, st: {} };
+      this.login(); Store.save(this.S, slot);
+    },
     save() { if (this.S) Store.save(this.S, this.slot); },
 
     // ===== 打卡 & 首登 =====
@@ -226,10 +232,60 @@
       if (item.ach && !S.achievements.includes(item.ach)) return false;
       if (S.points < item.price) return false;
       S.points -= item.price; S.owned.push(id); S.purchases++;
+      if (item.cat === "pet") {
+        // 领养：登记宠物 + 初始化成长状态 + 自动出战
+        if (!S.pets.owned.includes(id)) S.pets.owned.push(id);
+        this.petState(id);
+        S.pets.equipped = id;
+      }
       this.checkAchievements(); Store.save(S, this.slot);
       return true;
     },
     equip(cat, id) { const S = this.S; S.equipped[cat] = id; if (cat === "title") S.equipped.title = id; Store.save(S, this.slot); },
+
+    // ===== 宠物 =====
+    petLevel(xp) {
+      const R = window.PET_RULES;
+      return Math.max(1, Math.min(R.MAX_LEVEL, Math.floor(xp / R.LEVEL_STEP) + 1));
+    },
+    petState(id) {
+      const S = this.S;
+      if (!S.pets.st[id]) S.pets.st[id] = { xp: 0, fed: 0, fedDate: null, pacc: null };
+      return S.pets.st[id];
+    },
+    feedPet(id) {
+      const S = this.S, R = window.PET_RULES;
+      if (!S.pets.owned.includes(id)) return { ok: false, msg: "还没有领养这只宠物" };
+      if (S.points < R.FEED_COST) return { ok: false, msg: "积分不足（每次喂食需 " + R.FEED_COST + " 分）" };
+      const st = this.petState(id), today = todayStr();
+      if (st.fedDate !== today) { st.fedDate = today; st.fed = 0; }
+      if (st.fed >= R.FEEDS_PER_DAY) return { ok: false, msg: "它今天吃饱啦，明天再来喂吧（每天 " + R.FEEDS_PER_DAY + " 次）" };
+      const oldLv = this.petLevel(st.xp);
+      S.points -= R.FEED_COST;
+      st.xp += R.XP_PER_FEED; st.fed++;
+      const newLv = this.petLevel(st.xp);
+      const lvUp = newLv > oldLv;
+      this.checkAchievements();
+      Store.save(S, this.slot);
+      return { ok: true, lv: newLv, lvUp, xp: st.xp, nextXp: (newLv) * R.LEVEL_STEP };
+    },
+    equipPet(id) {
+      const S = this.S;
+      if (!S.pets.owned.includes(id)) return false;
+      S.pets.equipped = (S.pets.equipped === id) ? null : id;
+      Store.save(S, this.slot); return true;
+    },
+    equipPetAcc(paccId) {
+      const S = this.S, R = window.PET_RULES;
+      const item = window.DRESSUP_BY_ID[paccId];
+      if (!item || item.cat !== "pacc" || !S.owned.includes(paccId)) return { ok: false, msg: "还没拥有这件装扮" };
+      const pid = S.pets.equipped;
+      if (!pid) return { ok: false, msg: "先选出战宠物" };
+      if (this.petLevel(this.petState(pid).xp) < 2) return { ok: false, msg: "宠物等级达到 2 级才能穿戴装扮，去喂喂它吧" };
+      const st = this.petState(pid);
+      st.pacc = (st.pacc === paccId) ? null : paccId;
+      Store.save(S, this.slot); return { ok: true };
+    },
 
     // ===== 成就 =====
     checkAchievements() {
@@ -271,6 +327,10 @@
       const fin = s => Object.entries(S.testScores).some(([k, v]) => k.startsWith("final-" + s + "-") && v.score >= 85);
       if (["cn", "ma", "en"].every(fin)) add("ach-finalallexcellent");
       if (S.achievements.filter(a => a !== "ach-achiever20").length >= 19) add("ach-achiever20");
+      // 宠物成就
+      if (S.pets && S.pets.owned.length >= 1) add("ach-petfirst");
+      if (S.pets && Object.values(S.pets.st).some(st => this.petLevel(st.xp) >= 5)) add("ach-petlv5");
+      if (S.pets && Object.values(S.pets.st).some(st => this.petLevel(st.xp) >= window.PET_RULES.MAX_LEVEL)) add("ach-petlv10");
       return got;
     },
 
