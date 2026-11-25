@@ -1,5 +1,5 @@
 // Service Worker：离线缓存核心资源（双击 file:// 打开时自动跳过注册）
-const CACHE = "cnx-island-v2";
+const CACHE = "cnx-island-v3";
 const ASSETS = [
   "index.html",
   "css/style.css",
