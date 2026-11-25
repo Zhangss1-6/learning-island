@@ -4,14 +4,37 @@
     screen: "boot", island: "ma", run: null, shopCat: "hair", shopExpr: "welcome",
     wrongFilter: "all", radarSubject: "ma", cardSubject: "cn",
     parentUnlocked: false, _navVisible: false, _achQueue: [], _lastBreak: 0, _lastLimitToast: 0, _tick: null,
+    _hist: [],          // 页面返回栈
 
     // ===== 基础 UI =====
     setScreen(html, nav) {
+      // 自动存档：任何页面渲染后保存当前进度（防退出丢档）
+      if (Game.S) Game.save();
+      // 返回上一页悬浮按钮（启动页和首页除外）
+      if (this.screen && this.screen !== "boot" && this.screen !== "home" && !html.includes("app-back-btn")) {
+        html = '<button class="btn small plain app-back-btn" id="appBackBtn" style="margin:0 4px 8px" onclick="App.back()">← 返回</button>' + html;
+      }
       document.getElementById("app").innerHTML = html;
       this._navVisible = !!nav;
       const navEl = document.getElementById("nav");
       if (navEl) navEl.style.display = nav ? "flex" : "none";
       window.scrollTo(0, 0);
+    },
+
+    back() {
+      // 答题页返回需确认（关卡会作废）
+      if (this.screen === "quiz" && this.run && !this.run.finished) {
+        this.modal("<h3>确定要退出吗？</h3><div class='muted' style='margin:6px 0'>退出后本次答题将作废，不计积分。</div>", () => {
+          if (this._tick) { clearInterval(this._tick); this._tick = null; }
+          Game.endPractice();
+          this.run = null;
+          const prev = this._hist.pop() || "home";
+          this.go(prev === "quiz" ? "home" : prev);
+        }, "退出");
+        return;
+      }
+      const prev = this._hist.pop() || "home";
+      this.go(prev === "quiz" ? "home" : prev);
     },
     toast(msg, ms) {
       const t = document.createElement("div");
@@ -62,9 +85,12 @@
 
     // ===== 路由 =====
     go(screen) {
+      // 记录返回栈（同页跳转、回退不重复入栈）
+      if (this.screen && this.screen !== screen && screen !== "quiz") this._hist.push(this.screen);
+      if (screen === "boot") this._hist = [];
       this.screen = screen;
       if (this.run && this.run.mode === "level" && screen !== "quiz" && this._tick) { clearInterval(this._tick); this._tick = null; Game.endPractice(); }
-      const map = { boot: "boot", home: "home", shop: "shop", tests: "tests", shengchu: "shengchu", cards: "cards", wrongbook: "wrongbook", report: "report", achs: "achs", parent: "parent" };
+      const map = { boot: "boot", home: "home", shop: "shop", tests: "tests", shengchu: "shengchu", cards: "cards", wrongbook: "wrongbook", report: "report", achs: "achs", parent: "parent", rank: "rank" };
       if (map[screen]) { Views[map[screen]](); }
       else if (screen === "quiz") Views.quiz();
       this.markNav(screen);
@@ -291,13 +317,35 @@
     buy(id) {
       const item = window.DRESSUP_BY_ID[id];
       if (Game.buy(id)) {
-        Game.equip(item.cat, id);
-        this.toast("🎉 已购买并穿上「" + item.name + "」");
+        if (item.cat === "pet") {
+          this.shopCat = "pet"; // 自动切到宠物分类，展示喂养面板
+          this.toast("🐣 已领养「" + item.name + "」，它出战啦！记得每天喂食哦");
+        } else {
+          Game.equip(item.cat, id);
+          this.toast("🎉 已购买并穿上「" + item.name + "」");
+        }
         this.beep("great");
+        Game.save();
         Views.shop();
       } else this.toast("积分不足或暂未解锁");
     },
     equip(cat, id) { Game.equip(cat, id); this.toast("已穿戴"); Views.shop(); },
+
+    // ===== 宠物 =====
+    feedPet(id) {
+      const res = Game.feedPet(id);
+      if (res.ok) {
+        this.beep(res.lvUp ? "great" : "ok");
+        this.toast(res.lvUp ? "🎉 升级啦！宠物 Lv." + res.lv : "🍖 喂食成功，成长 +10");
+        Views.shop();
+      } else this.toast(res.msg);
+    },
+    equipPet(id) { Game.equipPet(id); Views.shop(); },
+    equipPetAcc(paccId) {
+      const res = Game.equipPetAcc(paccId);
+      if (res.ok) { this.toast("已为宠物换上装扮"); Views.shop(); }
+      else this.toast(res.msg);
+    },
 
     // ===== 家长模式 =====
     tryPin() {
@@ -333,9 +381,10 @@
       }, "确认重置");
     },
 
-    // ===== 护眼 & 时长（每分钟巡检） =====
+    // ===== 护眼 & 时长（每分钟巡检，顺带自动存档） =====
     _patrol() {
       if (!Game.S || !this.run) return;
+      Game.save(); // 定时自动存档，防浏览器被杀后台丢数据
       const mins = Game.todayMinutes();
       if (mins >= 25 && Date.now() - this._lastBreak > 25 * 60000) {
         this._lastBreak = Date.now();
