@@ -37,5 +37,8 @@ window.ACHIEVEMENTS = [
   { id: "ach-answer1500", name: "千五题斩", desc: "累计答题 1500 题", emoji: "🥉" },
   { id: "ach-level10", name: "十关老手", desc: "通关 10 个关卡", emoji: "🏔️" },
   { id: "ach-level30", name: "三十关豪杰", desc: "通关 30 个关卡", emoji: "🚩" },
-  { id: "ach-noloss", name: "零失误通关", desc: "一关 12 题全对无失误", emoji: "✨" }
+  { id: "ach-noloss", name: "零失误通关", desc: "一关 12 题全对无失误", emoji: "✨" },
+  { id: "ach-petfirst", name: "宠物伙伴", desc: "领养第一只宠物", emoji: "🐾" },
+  { id: "ach-petlv5", name: "宠物大师", desc: "任意宠物培养到 5 级", emoji: "🌟" },
+  { id: "ach-petlv10", name: "宠物传说", desc: "任意宠物培养到满级 10 级", emoji: "💫" }
 ];
