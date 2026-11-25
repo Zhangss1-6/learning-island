@@ -158,5 +158,26 @@ window.CHAR = (function () {
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
-  return { render, line, EX_LINES };
+  // 宠物渲染：出战宠物 + 宠物装扮 + 等级徽章（无存档或未养宠物时返回空串）
+  function renderPet(size) {
+    const S = Game.S;
+    if (!S || !S.pets || !S.pets.equipped) return "";
+    const pet = window.DRESSUP_BY_ID[S.pets.equipped];
+    if (!pet) return "";
+    const st = (S.pets.st && S.pets.st[pet.id]) || { xp: 0, pacc: null };
+    const lv = petLevelOf(st.xp);
+    const acc = st.pacc ? window.DRESSUP_BY_ID[st.pacc] : null;
+    return '<div style="display:inline-flex;flex-direction:column;align-items:center;margin-top:6px">'
+      + '<div style="position:relative;width:' + (size || "84px") + ';height:' + (size || "84px") + ';background:rgba(255,255,255,.85);border-radius:18px;box-shadow:0 3px 10px rgba(57,197,187,.25);display:flex;align-items:center;justify-content:center">'
+      + '<span style="font-size:' + (size ? Math.round(parseInt(size) * 0.5) + "px" : "2.4rem") + '">' + pet.emoji + '</span>'
+      + (acc ? '<span style="position:absolute;top:2px;right:4px;font-size:1rem">' + acc.emoji + '</span>' : '')
+      + '<span style="position:absolute;bottom:2px;left:4px;font-size:.62rem;font-weight:800;background:#39C5BB;color:#fff;border-radius:8px;padding:1px 6px">Lv' + lv + '</span>'
+      + '</div><div class="muted" style="font-size:.68rem;margin-top:2px">' + pet.name + '</div></div>';
+  }
+  function petLevelOf(xp) {
+    const R = window.PET_RULES || { LEVEL_STEP: 40, MAX_LEVEL: 10 };
+    return Math.max(1, Math.min(R.MAX_LEVEL, Math.floor((xp || 0) / R.LEVEL_STEP) + 1));
+  }
+
+  return { render, line, EX_LINES, renderPet, petLevelOf };
 })();
