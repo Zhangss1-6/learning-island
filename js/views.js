@@ -41,7 +41,7 @@
         + '<span class="pts">✨ ' + S.points + '</span></div></div>';
 
       // 小音 + 每日任务
-      html += '<div class="row" style="align-items:stretch"><div class="preview-box" style="flex:0 0 128px;margin-bottom:0;padding:6px">' + CHAR.render("encourage", "112px") + '</div>'
+      html += '<div class="row" style="align-items:stretch"><div class="preview-box" style="flex:0 0 128px;margin-bottom:0;padding:6px">' + CHAR.render("encourage", "112px") + CHAR.renderPet("70px") + '</div>'
         + '<div style="flex:1">' + Views._tasksCard() + '</div></div>';
 
       html += '<div class="island-tabs" style="margin-top:12px">';
@@ -75,6 +75,7 @@
       html += '<div class="card"><div class="muted" style="font-weight:800;margin-bottom:8px">🎒 更多功能</div><div class="row wrap">'
         + '<button class="btn small pink" onclick="App.go(\'shengchu\')">🎯 小升初专区</button>'
         + '<button class="btn small plain" onclick="App.go(\'cards\')">🃏 速记卡</button>'
+        + '<button class="btn small plain" onclick="App.go(\'rank\')">🏆 积分排行</button>'
         + '<button class="btn small plain" onclick="App.go(\'achs\')">🏅 成就 ' + S.achievements.length + '/' + window.ACHIEVEMENTS.length + '</button>'
         + '<button class="btn small plain" onclick="App.go(\'parent\')">👨‍👩‍👧 家长模式</button></div></div>';
       App.setScreen(html, true);
@@ -234,32 +235,85 @@
     // ============ 装扮屋 ============
     shop() {
       const S = Game.S;
-      const CATS = [{ id: "hair", name: "💇 发型" }, { id: "fit", name: "👗 服装" }, { id: "acc", name: "🎒 配饰" }, { id: "bg", name: "🏠 背景" }, { id: "title", name: "🏷️ 称号" }, { id: "prop", name: "🧸 道具" }];
+      const CATS = [{ id: "hair", name: "💇 发型" }, { id: "fit", name: "👗 服装" }, { id: "acc", name: "🎒 配饰" }, { id: "pet", name: "🐾 宠物" }, { id: "pacc", name: "🎀 宠物装扮" }, { id: "bg", name: "🏠 背景" }, { id: "title", name: "🏷️ 称号" }, { id: "prop", name: "🧸 道具" }];
       const expr = App.shopExpr || "welcome";
       let html = '<div class="topbar"><b>🛍️ 装扮屋</b><div class="row"><button class="btn small plain" onclick="App.cycleShopExpr()">😊 换表情</button><span class="pts">✨ ' + S.points + '</span></div></div>';
-      html += '<div class="preview-box" id="previewBox">' + CHAR.render(expr) + '<div class="muted" style="margin-top:4px">' + esc(S.name) + (S.equipped.title ? ' · ' + esc(window.DRESSUP_BY_ID[S.equipped.title].text) : '') + '</div></div>';
+      html += '<div class="preview-box" id="previewBox" style="display:flex;align-items:center;gap:8px">'
+        + '<div style="flex:1">' + CHAR.render(expr) + '</div>' + CHAR.renderPet("90px") + '</div>';
+      // 宠物出战面板
+      if (App.shopCat === "pet" || App.shopCat === "pacc") html += Views._petPanel();
       html += '<div class="shop-tabs">';
       CATS.forEach(c => html += '<button class="' + (c.id === App.shopCat ? "active" : "") + '" onclick="App.shopCat(\'' + c.id + '\')">' + c.name + '</button>');
       html += '</div>';
       window.DRESSUP.filter(d => d.cat === App.shopCat).forEach(d => {
         const owned = S.owned.includes(d.id);
-        const worn = S.equipped[d.cat] === d.id;
         const achLocked = d.ach && !S.achievements.includes(d.ach);
         const achName = d.ach ? (window.ACHIEVEMENTS.find(a => a.id === d.ach) || {}).name : "";
         const rar = d.rarity >= 2 ? " r" + Math.min(d.rarity, 5) : "";
-        const ic = d.cat === "prop" ? d.emoji : d.cat === "title" ? "🏷️" : d.cat === "bg" ? "🖼️" : d.cat === "acc" ? (d.svg.kind === "glasses" ? "👓" : d.svg.kind === "bag" ? "🎒" : d.svg.kind === "band" ? "🎀" : d.svg.kind === "pin" ? "📌" : "🎧") : d.cat === "fit" ? "👗" : "💇";
-        html += '<div class="card shop-item"><div class="ic' + rar + '">' + ic + '</div><div style="flex:1"><b>' + esc(d.name) + '</b> ' + (d.rarity >= 4 ? '<span class="tag warn">' + (d.rarity === 5 ? "限定" : "稀有") + '</span>' : '')
-          + (worn ? '<span class="tag">穿戴中</span>' : owned ? '' : '')
+        const ic = d.cat === "pet" || d.cat === "pacc" ? d.emoji
+          : d.cat === "prop" ? d.emoji : d.cat === "title" ? "🏷️" : d.cat === "bg" ? "🖼️" : d.cat === "acc" ? (d.svg.kind === "glasses" ? "👓" : d.svg.kind === "bag" ? "🎒" : d.svg.kind === "band" ? "🎀" : d.svg.kind === "pin" ? "📌" : "🎧") : d.cat === "fit" ? "👗" : "💇";
+        const rarity = window.RARITY_NAMES[d.rarity] || "";
+        html += '<div class="card shop-item"><div class="ic' + rar + '">' + ic + '</div><div style="flex:1"><b>' + esc(d.name) + '</b> '
+          + (d.rarity >= 4 ? '<span class="tag warn">' + (d.rarity === 5 ? "限定" : "稀有") + '</span>' : '')
+          + '<div class="muted" style="font-size:.66rem">' + rarity + '</div>'
           + '<div class="muted">' + esc(d.desc) + (achLocked ? ' · 🔒 需成就「' + achName + '」' : '') + '</div></div>';
-        if (worn) html += '<button class="btn small plain" disabled>穿戴中</button>';
-        else if (owned) html += '<button class="btn small" onclick="App.equip(\'' + d.cat + '\',\'' + d.id + '\')">穿戴</button>';
-        else if (achLocked) html += '<button class="btn small plain" disabled>🔒 未解锁</button>';
-        else if (S.points >= d.price) html += '<button class="btn small pink" onclick="App.buy(\'' + d.id + '\')">💰 ' + d.price + '</button>';
-        else html += '<button class="btn small plain" disabled>💰 ' + d.price + '（积分不足）</button>';
+        html += Views._shopBtn(d, owned, achLocked);
         html += '</div>';
       });
-      html += '<div class="muted" style="text-align:center;margin-top:8px">全部明码标价 · 不设抽奖 · 不限时售卖</div>';
+      html += '<div class="muted" style="text-align:center;margin-top:8px">全部明码标价 · 不设抽奖 · 不限时售卖 · 积分越多可解锁的档位越漂亮</div>';
       App.setScreen(html, true);
+    },
+
+    _shopBtn(d, owned, achLocked) {
+      const S = Game.S;
+      if (d.cat === "pet") {
+        if (S.pets.owned.includes(d.id)) {
+          const st = Game.petState(d.id), lv = CHAR.petLevelOf(st.xp);
+          return '<button class="btn small ' + (S.pets.equipped === d.id ? "plain" : "") + '" onclick="App.equipPet(\'' + d.id + '\')">' + (S.pets.equipped === d.id ? "出战中" : "出战") + '</button>';
+        }
+        if (achLocked) return '<button class="btn small plain" disabled>🔒 未解锁</button>';
+        if (S.points >= d.price) return '<button class="btn small pink" onclick="App.buy(\'' + d.id + '\')">🥚 领养 ' + d.price + '</button>';
+        return '<button class="btn small plain" disabled>🥚 ' + d.price + '（积分不足）</button>';
+      }
+      if (d.cat === "pacc") {
+        if (owned) return '<button class="btn small ' + (S.pets.equipped && S.pets.st[S.pets.equipped] && S.pets.st[S.pets.equipped].pacc === d.id ? "plain" : "") + '" onclick="App.equipPetAcc(\'' + d.id + '\')">给宠物穿</button>';
+        if (achLocked) return '<button class="btn small plain" disabled>🔒 未解锁</button>';
+        if (S.points >= d.price) return '<button class="btn small pink" onclick="App.buy(\'' + d.id + '\')">💰 ' + d.price + '</button>';
+        return '<button class="btn small plain" disabled>💰 ' + d.price + '（积分不足）</button>';
+      }
+      const worn = S.equipped[d.cat] === d.id;
+      if (worn) return '<button class="btn small plain" disabled>穿戴中</button>';
+      if (owned) return '<button class="btn small" onclick="App.equip(\'' + d.cat + '\',\'' + d.id + '\')">穿戴</button>';
+      if (achLocked) return '<button class="btn small plain" disabled>🔒 未解锁</button>';
+      if (S.points >= d.price) return '<button class="btn small pink" onclick="App.buy(\'' + d.id + '\')">💰 ' + d.price + '</button>';
+      return '<button class="btn small plain" disabled>💰 ' + d.price + '（积分不足）</button>';
+    },
+
+    // 出战宠物成长面板
+    _petPanel() {
+      const S = Game.S, R = window.PET_RULES;
+      let html = '';
+      if (!S.pets.equipped) {
+        html += '<div class="card" style="text-align:center"><div style="font-size:2rem">🐾</div><b>还没有出战宠物</b><div class="muted" style="margin-top:4px">在「🐾 宠物」分类里领养一只，然后点「出战」。每天可以喂食 ' + R.FEEDS_PER_DAY + ' 次，宠物升级后能穿戴专属装扮！</div></div>';
+        return html;
+      }
+      const pet = window.DRESSUP_BY_ID[S.pets.equipped];
+      const st = Game.petState(pet.id);
+      const lv = CHAR.petLevelOf(st.xp);
+      const today = window.todayStr();
+      if (st.fedDate !== today) { st.fedDate = today; st.fed = 0; }
+      const curBase = (lv - 1) * R.LEVEL_STEP, nextBase = lv * R.LEVEL_STEP;
+      const pct = lv >= R.MAX_LEVEL ? 100 : Math.min(100, Math.round((st.xp - curBase) / R.LEVEL_STEP * 100));
+      html += '<div class="card"><div class="row spread"><b>' + pet.emoji + ' ' + esc(pet.name) + ' <span class="tag">Lv.' + lv + '</span></b>'
+        + '<span class="muted">今日已喂 ' + st.fed + '/' + R.FEEDS_PER_DAY + '</span></div>'
+        + '<div class="bar-row"><div class="lbl"><span>成长值</span><span class="muted">' + (lv >= R.MAX_LEVEL ? "已满级" : st.xp + " / " + nextBase + "（Lv" + (lv + 1) + "）") + '</span></div>'
+        + '<div class="bar-track"><div style="width:' + pct + '%"></div></div></div>'
+        + '<div class="row spread" style="margin-top:8px"><span class="muted">等级 2 级起可穿戴宠物装扮 · 每次喂食 +' + R.XP_PER_FEED + ' 成长</span>'
+        + (lv >= R.MAX_LEVEL ? '<button class="btn small plain" disabled>满级啦 🎉</button>'
+          : st.fed >= R.FEEDS_PER_DAY ? '<button class="btn small plain" disabled>今天吃饱啦</button>'
+          : '<button class="btn small pink" onclick="App.feedPet(\'' + pet.id + '\')">🍖 喂食（' + R.FEED_COST + ' 分）</button>')
+        + '</div></div>';
+      return html;
     },
 
     // ============ 测评中心 ============
@@ -440,6 +494,50 @@
         const got = S.achievements.includes(a.id);
         html += '<div class="ach-cell ' + (got ? "got" : "off") + '" title="' + esc(a.desc) + '"><div class="e">' + a.emoji + '</div><div class="n">' + esc(a.name) + '</div><div class="muted" style="font-size:.62rem">' + (got ? "已达成" : esc(a.desc).slice(0, 10)) + '</div></div>';
       });
+      html += '</div>';
+      App.setScreen(html, true);
+    },
+
+    // ============ 积分排行榜 ============
+    rank() {
+      const S = Game.S, curSlot = Game.slot;
+      let html = '<div class="topbar"><b>🏆 积分排行榜</b><span class="pts">✨ ' + S.pointsEarned + '</span></div>';
+      // 本机存档排行
+      const slots = Store.listSlots().filter(s => s.data).sort((a, b) => (b.data.pointsEarned || 0) - (a.data.pointsEarned || 0));
+      html += '<div class="card"><b>🏠 本机挑战者（' + slots.length + ' 个存档）</b>';
+      slots.forEach((s, i) => {
+        const d = s.data, me = s.i === curSlot;
+        const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉";
+        html += '<div class="row spread" style="padding:8px 0;border-bottom:1px dashed #EAF0F2' + (me ? ';background:rgba(57,197,187,.08);border-radius:10px;padding:8px' : '') + '">'
+          + '<span>' + medal + ' ' + esc(d.name) + (me ? ' <span class="tag">我</span>' : '') + '</span>'
+          + '<b>' + (d.pointsEarned || 0) + ' 分</b></div>';
+      });
+      html += '<div class="muted" style="margin-top:6px">在启动页创建 3 个存档，兄弟姐妹比一比谁积分高！</div></div>';
+      // 模拟全国榜（纯前端估算）
+      const pe = S.pointsEarned || 0;
+      const tiers = [
+        { pct: 90, min: 6000, tag: "顶尖选手" }, { pct: 75, min: 3500, tag: "实力强劲" },
+        { pct: 50, min: 1500, tag: "稳步前进" }, { pct: 25, min: 500, tag: "刚刚起步" }
+      ];
+      const my = tiers.find(t => pe >= t.min);
+      html += '<div class="card"><b>🌏 全国小学生模拟榜</b><div style="text-align:center;padding:8px 0">'
+        + '<div style="font-size:1.8rem;font-weight:900;color:var(--teal-dark)">' + (my ? "超过 " + my.pct + "%" : "出发！") + '</div>'
+        + '<div class="muted">' + (my ? my.tag + "（累计 " + pe + " 分）" : "答满 500 分即可进入全国模拟榜") + '</div></div>'
+        + '<div class="bar-row"><div class="lbl"><span>500 分</span><span class="muted">入门</span></div><div class="bar-track ' + (pe >= 500 ? "" : "low") + '"><div style="width:' + Math.min(100, pe / 500 * 100) + '%"></div></div></div>'
+        + '<div class="bar-row"><div class="lbl"><span>1500 分</span><span class="muted">中游</span></div><div class="bar-track"><div style="width:' + Math.min(100, pe / 1500 * 100) + '%"></div></div></div>'
+        + '<div class="bar-row"><div class="lbl"><span>3500 分</span><span class="muted">强劲</span></div><div class="bar-track"><div style="width:' + Math.min(100, pe / 3500 * 100) + '%"></div></div></div>'
+        + '<div class="bar-row"><div class="lbl"><span>6000 分</span><span class="muted">顶尖</span></div><div class="bar-track"><div style="width:' + Math.min(100, pe / 6000 * 100) + '%"></div></div></div>'
+        + '<div class="muted" style="margin-top:6px">以上分档为模拟参考数据，非真实排名。</div></div>';
+      // 三科强弱
+      const SUBJ = window.SUBJ_META;
+      html += '<div class="card"><b>⚔️ 三科积分实力</b>';
+      for (const s in SUBJ) {
+        let a = 0, c = 0;
+        Object.entries(S.stats.byUnit).forEach(([k, v]) => { if (k.startsWith(s + "-")) { a += v.a; c += v.c; } });
+        const pct = a ? Math.round(c / a * 100) : 0;
+        html += '<div class="bar-row"><div class="lbl"><span>' + SUBJ[s].icon + ' ' + SUBJ[s].name.replace("岛", "") + '</span><span class="muted">' + pct + '%（' + a + ' 题）</span></div>'
+          + '<div class="bar-track ' + (pct < 60 ? "low" : "") + '"><div style="width:' + pct + '%"></div></div></div>';
+      }
       html += '</div>';
       App.setScreen(html, true);
     },
