@@ -10,9 +10,11 @@
     setScreen(html, nav) {
       // 自动存档：任何页面渲染后保存当前进度（防退出丢档）
       if (Game.S) Game.save();
-      // 返回上一页悬浮按钮（启动页和首页除外）
+      // 悬浮导航按钮（启动页和首页除外）：← 返回上一页 + 🏠 回首页
       if (this.screen && this.screen !== "boot" && this.screen !== "home" && !html.includes("app-back-btn")) {
-        html = '<button class="btn small plain app-back-btn" id="appBackBtn" style="margin:0 4px 8px" onclick="App.back()">← 返回</button>' + html;
+        html = '<div class="row" style="margin:0 4px 8px;gap:8px">'
+          + '<button class="btn small plain app-back-btn" id="appBackBtn" onclick="App.back()">← 返回</button>'
+          + '<button class="btn small plain app-back-btn" onclick="App.goHome()">🏠 首页</button></div>' + html;
       }
       document.getElementById("app").innerHTML = html;
       this._navVisible = !!nav;
@@ -36,6 +38,18 @@
       const prev = this._hist.pop() || "home";
       this.go(prev === "quiz" ? "home" : prev);
     },
+    // 一键回首页（答题中先确认，避免误触作废关卡）
+    goHome() {
+      if (this.screen === "quiz" && this.run && !this.run.finished) {
+        this.modal("<h3>确定要回首页吗？</h3><div class='muted' style='margin:6px 0'>退出后本次答题将作废，不计积分。</div>", () => {
+          if (this._tick) { clearInterval(this._tick); this._tick = null; }
+          Game.endPractice(); this.run = null; this._hist = []; this.go("home");
+        }, "回首页");
+        return;
+      }
+      this._hist = []; this.go("home");
+    },
+
     toast(msg, ms) {
       const t = document.createElement("div");
       t.className = "toast"; t.textContent = msg;
@@ -312,7 +326,8 @@
     },
 
     // ===== 装扮 =====
-    shopCat(c) { this.shopCat = c; Views.shop(); },
+    // 注意：分类状态存 this.shopCat（字符串），切换用 setShopCat，避免属性与方法同名互相覆盖
+    setShopCat(c) { this.shopCat = c; Views.shop(); },
     cycleShopExpr() { const list = ["welcome", "think", "surprise", "cheer", "sad", "encourage"]; this.shopExpr = list[(list.indexOf(this.shopExpr) + 1) % list.length]; Views.shop(); },
     buy(id) {
       const item = window.DRESSUP_BY_ID[id];
@@ -433,5 +448,7 @@
       navigator.serviceWorker.register("sw.js").catch(() => { });
     }
     window.addEventListener("beforeunload", () => { if (Game.S) { Game.endPractice(); Game.save(); } });
+    // 切后台/锁屏也自动存档（手机上最常用的退出方式）
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && Game.S) Game.save(); });
   });
 })();
