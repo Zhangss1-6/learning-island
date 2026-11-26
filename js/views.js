@@ -243,17 +243,17 @@
       // 宠物出战面板
       if (App.shopCat === "pet" || App.shopCat === "pacc") html += Views._petPanel();
       html += '<div class="shop-tabs">';
-      CATS.forEach(c => html += '<button class="' + (c.id === App.shopCat ? "active" : "") + '" onclick="App.shopCat(\'' + c.id + '\')">' + c.name + '</button>');
+      CATS.forEach(c => html += '<button class="' + (c.id === App.shopCat ? "active" : "") + '" onclick="App.setShopCat(\'' + c.id + '\')">' + c.name + '</button>');
       html += '</div>';
       window.DRESSUP.filter(d => d.cat === App.shopCat).forEach(d => {
         const owned = S.owned.includes(d.id);
         const achLocked = d.ach && !S.achievements.includes(d.ach);
         const achName = d.ach ? (window.ACHIEVEMENTS.find(a => a.id === d.ach) || {}).name : "";
         const rar = d.rarity >= 2 ? " r" + Math.min(d.rarity, 5) : "";
-        const ic = d.cat === "pet" || d.cat === "pacc" ? d.emoji
-          : d.cat === "prop" ? d.emoji : d.cat === "title" ? "🏷️" : d.cat === "bg" ? "🖼️" : d.cat === "acc" ? (d.svg.kind === "glasses" ? "👓" : d.svg.kind === "bag" ? "🎒" : d.svg.kind === "band" ? "🎀" : d.svg.kind === "pin" ? "📌" : "🎧") : d.cat === "fit" ? "👗" : "💇";
+        const icHtml = d.cat === "pet" ? CHAR.petSVG(d, "36px")
+          : d.cat === "prop" || d.cat === "pacc" ? d.emoji : d.cat === "title" ? "🏷️" : d.cat === "bg" ? "🖼️" : d.cat === "acc" ? (d.svg.kind === "glasses" ? "👓" : d.svg.kind === "bag" ? "🎒" : d.svg.kind === "band" ? "🎀" : d.svg.kind === "pin" ? "📌" : "🎧") : d.cat === "fit" ? "👗" : "💇";
         const rarity = window.RARITY_NAMES[d.rarity] || "";
-        html += '<div class="card shop-item"><div class="ic' + rar + '">' + ic + '</div><div style="flex:1"><b>' + esc(d.name) + '</b> '
+        html += '<div class="card shop-item"><div class="ic' + rar + '" style="display:flex;align-items:center;justify-content:center">' + icHtml + '</div><div style="flex:1"><b>' + esc(d.name) + '</b> '
           + (d.rarity >= 4 ? '<span class="tag warn">' + (d.rarity === 5 ? "限定" : "稀有") + '</span>' : '')
           + '<div class="muted" style="font-size:.66rem">' + rarity + '</div>'
           + '<div class="muted">' + esc(d.desc) + (achLocked ? ' · 🔒 需成就「' + achName + '」' : '') + '</div></div>';
@@ -304,7 +304,7 @@
       if (st.fedDate !== today) { st.fedDate = today; st.fed = 0; }
       const curBase = (lv - 1) * R.LEVEL_STEP, nextBase = lv * R.LEVEL_STEP;
       const pct = lv >= R.MAX_LEVEL ? 100 : Math.min(100, Math.round((st.xp - curBase) / R.LEVEL_STEP * 100));
-      html += '<div class="card"><div class="row spread"><b>' + pet.emoji + ' ' + esc(pet.name) + ' <span class="tag">Lv.' + lv + '</span></b>'
+      html += '<div class="card"><div class="row spread"><b>' + CHAR.petSVG(pet, "30px") + ' ' + esc(pet.name) + ' <span class="tag">Lv.' + lv + '</span></b>'
         + '<span class="muted">今日已喂 ' + st.fed + '/' + R.FEEDS_PER_DAY + '</span></div>'
         + '<div class="bar-row"><div class="lbl"><span>成长值</span><span class="muted">' + (lv >= R.MAX_LEVEL ? "已满级" : st.xp + " / " + nextBase + "（Lv" + (lv + 1) + "）") + '</span></div>'
         + '<div class="bar-track"><div style="width:' + pct + '%"></div></div></div>'
