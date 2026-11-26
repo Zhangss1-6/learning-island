@@ -72,7 +72,35 @@
       this.slot = slot; this.S = state || defaultState();
       // 旧存档迁移：补宠物字段
       if (!this.S.pets) this.S.pets = { owned: [], equipped: null, st: {} };
+      this.migrateCn2026();
       this.login(); Store.save(this.S, slot);
+    },
+    // 2026 新教材迁移：六下单元重排（旧2名著→3、旧3真情→4、旧4革命→2），进度随内容搬到新单元
+    migrateCn2026() {
+      const S = this.S;
+      if (!S || S.flags["cn2026migrated"]) return;
+      const MAP = { "2": "3", "3": "4", "4": "2" }; // 旧单元号 → 新单元号
+      function remap(key) {
+        const m = key.match(/^(cn\|6下\|)(\d)(\|.*)$/);          // stars / best / flags 的 ts 前缀
+        if (m && MAP[m[2]]) return m[1] + MAP[m[2]] + m[3];
+        const m2 = key.match(/^(ut-cn-6下-)(\d)$/);              // 单元测成绩
+        if (m2 && MAP[m2[2]]) return m2[1] + MAP[m2[2]];
+        const m3 = key.match(/^(cn-6下-)(\d)$/);                 // stats.byUnit
+        if (m3 && MAP[m3[2]]) return m3[1] + MAP[m3[2]];
+        const m4 = key.match(/^(cn-6b-u)(\d)(-.*)$/);            // 错题 qid
+        if (m4 && MAP[m4[2]]) return m4[1] + MAP[m4[2]] + m4[3];
+        return null;
+      }
+      function remapStore(obj) {
+        const moves = [];
+        Object.keys(obj).forEach(k => { const nk = remap(k); if (nk && !obj[nk]) moves.push([k, nk]); });
+        moves.forEach(([k, nk]) => { obj[nk] = obj[k]; delete obj[k]; });
+      }
+      remapStore(S.stars); remapStore(S.best); remapStore(S.testScores);
+      remapStore(S.stats.byUnit); remapStore(S.wrong);
+      Object.keys(S.wrong).forEach(k => { S.wrong[k].qid = k; });
+      Object.keys(S.flags).forEach(k => { if (k.startsWith("ts")) { const nk = remap(k.slice(2)); if (nk) { S.flags["ts" + nk] = true; delete S.flags[k]; } } });
+      S.flags["cn2026migrated"] = true;
     },
     save() { if (this.S) Store.save(this.S, this.slot); },
 
