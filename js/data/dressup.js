@@ -67,16 +67,17 @@ window.DRESSUP = [
   { id: "prop-7", cat: "prop", name: "火箭模型", price: 1600, rarity: 5, emoji: "🚀", desc: "限定：连对 10 题", ach: "ach-streak10" },
   { id: "prop-8", cat: "prop", name: "毕业相册", price: 1600, rarity: 5, emoji: "📔", desc: "限定：连续打卡 30 天", ach: "ach-streak30" },
 
-  // ===== 宠物 (9)：明码标价领养，喂养升级（越贵越稀有） =====
-  { id: "pet-1", cat: "pet", name: "咕咕小黄鸡", price: 100, rarity: 1, emoji: "🐥", desc: "叽叽喳喳陪你刷题" },
-  { id: "pet-2", cat: "pet", name: "小奶猫", price: 300, rarity: 2, emoji: "🐱", desc: "练习时会趴在桌角" },
-  { id: "pet-3", cat: "pet", name: "柴柴", price: 300, rarity: 2, emoji: "🐶", desc: "汪！闯关必胜！" },
-  { id: "pet-4", cat: "pet", name: "摇摇摆摆企鹅", price: 600, rarity: 3, emoji: "🐧", desc: "走路自带节奏感" },
-  { id: "pet-5", cat: "pet", name: "滚滚小熊猫", price: 1000, rarity: 4, emoji: "🐼", desc: "国宝级学习搭子" },
-  { id: "pet-6", cat: "pet", name: "机灵小狐狸", price: 1000, rarity: 4, emoji: "🦊", desc: "难题难不倒它" },
-  { id: "pet-7", cat: "pet", name: "云朵小飞龙", price: 1600, rarity: 5, emoji: "🐲", desc: "传说级坐骑" },
-  { id: "pet-8", cat: "pet", name: "彩虹独角兽", price: 1600, rarity: 5, emoji: "🦄", desc: "传说级幸运星" },
-  { id: "pet-9", cat: "pet", name: "小麒麟", price: 1600, rarity: 5, emoji: "🦌", desc: "限定：达成 20 个成就", ach: "ach-achiever20" },
+  // ===== 宠物 (9)：明码标价领养，喂养升级（越贵越稀有）=====
+  // svg.species 对应 Q 版卡通 SVG 造型，svg.color 为主色
+  { id: "pet-1", cat: "pet", name: "咕咕小黄鸡", price: 100, rarity: 1, emoji: "🐥", svg: { species: "chick", color: "#FFE066" }, desc: "叽叽喳喳陪你刷题" },
+  { id: "pet-2", cat: "pet", name: "小奶猫", price: 300, rarity: 2, emoji: "🐱", svg: { species: "cat", color: "#EAF0F4" }, desc: "练习时会趴在桌角" },
+  { id: "pet-3", cat: "pet", name: "柴柴", price: 300, rarity: 2, emoji: "🐶", svg: { species: "dog", color: "#E8A761" }, desc: "汪！闯关必胜！" },
+  { id: "pet-4", cat: "pet", name: "摇摇摆摆企鹅", price: 600, rarity: 3, emoji: "🐧", svg: { species: "penguin", color: "#3A4A5A" }, desc: "走路自带节奏感" },
+  { id: "pet-5", cat: "pet", name: "滚滚小熊猫", price: 1000, rarity: 4, emoji: "🐼", svg: { species: "panda", color: "#FFFDF8" }, desc: "国宝级学习搭子" },
+  { id: "pet-6", cat: "pet", name: "机灵小狐狸", price: 1000, rarity: 4, emoji: "🦊", svg: { species: "fox", color: "#F59B4C" }, desc: "难题难不倒它" },
+  { id: "pet-7", cat: "pet", name: "云朵小飞龙", price: 1600, rarity: 5, emoji: "🐲", svg: { species: "dragon", color: "#7FD6C4" }, desc: "传说级坐骑" },
+  { id: "pet-8", cat: "pet", name: "彩虹独角兽", price: 1600, rarity: 5, emoji: "🦄", svg: { species: "unicorn", color: "#FFFDF8" }, desc: "传说级幸运星" },
+  { id: "pet-9", cat: "pet", name: "小麒麟", price: 1600, rarity: 5, emoji: "🦌", svg: { species: "qilin", color: "#E8C06B" }, desc: "限定：达成 20 个成就", ach: "ach-achiever20" },
 
   // ===== 宠物装扮 (6)：需宠物等级 ≥2 才可穿戴 =====
   { id: "pacc-1", cat: "pacc", name: "蝴蝶结", price: 100, rarity: 1, emoji: "🎀", desc: "宠物必备卖萌神器" },
